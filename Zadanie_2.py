@@ -39,9 +39,9 @@ class MazeGame(QMainWindow):
                 "#S   #   #",
                 "# ## ##  #",
                 "#    #  ##",
-                "#### #   #",
+                "###  #   #",
                 "#   #### #",
-                "# ##     #",
+                "#  #     #",
                 "#    ##  #",
                 "## ###   #",
                 "#   #    #",
@@ -56,9 +56,9 @@ class MazeGame(QMainWindow):
                 "#### # ###",
                 "#    #   #",
                 "# ## ### #",
-                "# ## #   #",
+                "# #  #   #",
                 "#   ###  #",
-                "# ###   E#",
+                "#  ##   E#",
                 "#        #",
                 "##########",
             ],
@@ -70,10 +70,10 @@ class MazeGame(QMainWindow):
                 "#   #### #",
                 "# #      #",
                 "# # ######",
-                "# #      #",
+                "# #   #  #",
                 "#   ##   #",
                 "# ###  # #",
-                "#    #  E#",
+                "#     # E#",
                 "##########",
             ],
         ]
@@ -145,6 +145,89 @@ class MazeGame(QMainWindow):
             "Kliknij i przytrzymaj lewy przycisk myszy w zielonym polu START, "
             "następnie prowadź kursor do czerwonego pola META nie dotykając ścian i "
             "nie puszczając przycisku. Powodzenia")
+
+    def _draw_maze(self, pix: QPixmap, grid, start, end):
+       
+        pix.fill(Qt.GlobalColor.white)
+        p = QPainter(pix)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(Qt.GlobalColor.black)
+    # Ściany
+        for r, row in enumerate(grid):
+            for c, cell in enumerate(row):
+                if cell == 1:
+                    p.drawRect(c*self.cell_size, r*self.cell_size,
+                               self.cell_size, self.cell_size)
+    # Start
+        p.setBrush(Qt.GlobalColor.green)
+        sc = start
+        p.drawRect(sc[0]*self.cell_size, sc[1]*self.cell_size,
+                   self.cell_size, self.cell_size)
+    # Meta
+        p.setBrush(Qt.GlobalColor.red)
+        ec = end
+        p.drawRect(ec[0]*self.cell_size, ec[1]*self.cell_size,
+                   self.cell_size, self.cell_size)
+        p.end()
+
+    def handle_press(self, event: QMouseEvent):
+        if event.button() != Qt.MouseButton.LeftButton:
+            return
+        x, y = event.position().toPoint().x(), event.position().toPoint().y()
+        c, r = x // self.cell_size, y // self.cell_size
+        # uruchamianie trybu rysowania
+        if (c, r) == self.current["start"]:
+            self.is_drawing = True
+            self.last_pt = QPoint(x, y)
+            self.start_time = QTime.currentTime()
+
+    def handle_move(self, event: QMouseEvent):
+        if not self.is_drawing:
+            return
+        x, y = event.position().toPoint().x(), event.position().toPoint().y()
+        #przegrana
+        if not (0 <= x < self.W and 0 <= y < self.H):
+            self._finish(False)
+            return
+
+        #Kolizja ze ścianą
+        col = self.base_pixmap.toImage().pixelColor(x, y)
+        if col == QColor(Qt.GlobalColor.black):
+            self._finish(False)
+            return
+
+        painter = QPainter(self.path_pixmap)
+        pen = QPen(QColor(30, 144, 255), 4)  # dodawanie niebieskiej linii
+        painter.setPen(pen)
+        painter.drawLine(self.last_pt, QPoint(x, y))
+        painter.end()
+        self.last_pt = QPoint(x, y)
+        self.label.setPixmap(self.path_pixmap)
+
+        # meta 
+        c, r = x // self.cell_size, y // self.cell_size
+        if (c, r) == self.current["end"]:
+            self._finish(True)
+
+    def handle_release(self, event: QMouseEvent):   #puszczenie przycisku
+        if self.is_drawing:
+            self._finish(False)
+
+
+    def _finish(self, won: bool):       #koniec, drukowanie wyniku
+        self.is_drawing = False
+        if won and self.start_time:
+            elapsed = self.start_time.msecsTo(QTime.currentTime()) / 1000.0
+            QMessageBox.information(
+                self, "Zwyciestwo!",
+                f"Gratulacje! Przeszedłeś labirynt w {elapsed:.2f} sek.")
+        else:
+            QMessageBox.warning(
+                self, "Przegrana",
+                "Niestety, dotknąłeś ściany lub pusściłeś przycisk myszy.\n"
+                "Spróbuj ponownie.")
+        
+
 
 
 if __name__ == "__main__":
