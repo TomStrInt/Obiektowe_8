@@ -15,6 +15,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.draw_something()
 
     def draw_something(self):
+        from random import randint
         canvas = self.label.pixmap()
         painter = QtGui.QPainter(canvas)
 
@@ -25,6 +26,14 @@ class MainWindow(QtWidgets.QMainWindow):
         painter.setPen(pen)
         painter.drawLine(10, 10, 300, 200)  #rysowanie linii
         painter.drawPoint(200, 150)     #rysowanie punktu
+
+        for n in range(10000):
+            painter.drawPoint(
+                200+randint(-75, 100),  # x
+                150+randint(-100, 80)   # y
+                )
+        
+
 
         painter.end()
         self.label.setPixmap(canvas)
