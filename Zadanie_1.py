@@ -18,6 +18,7 @@ class MainWindow(QtWidgets.QMainWindow):
         canvas = self.label.pixmap()
         painter = QtGui.QPainter(canvas)
         painter.drawLine(10, 10, 300, 200)
+        painter.drawPoint(200, 150)
         painter.end()
         self.label.setPixmap(canvas)
 
