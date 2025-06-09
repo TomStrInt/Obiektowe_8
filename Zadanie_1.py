@@ -17,11 +17,19 @@ class MainWindow(QtWidgets.QMainWindow):
     def draw_something(self):
         canvas = self.label.pixmap()
         painter = QtGui.QPainter(canvas)
-        painter.drawLine(10, 10, 300, 200)
-        painter.drawPoint(200, 150)
+
+       
+        pen = QtGui.QPen()
+        pen.setWidth(60)
+        pen.setColor(QtGui.QColor('green'))
+        painter.setPen(pen)
+        painter.drawLine(10, 10, 300, 200)  #rysowanie linii
+        painter.drawPoint(200, 150)     #rysowanie punktu
+
         painter.end()
         self.label.setPixmap(canvas)
 
+        
 
 app = QtWidgets.QApplication(sys.argv)
 window = MainWindow()
